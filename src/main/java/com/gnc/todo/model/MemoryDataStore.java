@@ -1,6 +1,7 @@
 package com.gnc.todo.model;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.springframework.stereotype.Component;
@@ -48,6 +49,22 @@ public class MemoryDataStore {
         }
 
         listItemMap.remove(listItem.getId());
+    }
+
+    public Optional<TodoList> findTodoList(Long id) {
+        if(listMap.containsKey(id)) {
+            return Optional.of(listMap.get(id));
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<ListItem> findListItem(Long id) {
+        if(listItemMap.containsKey(id)) {
+            return Optional.of(listItemMap.get(id));
+        }
+
+        return Optional.empty();
     }
 
 }
