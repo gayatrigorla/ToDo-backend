@@ -3,6 +3,7 @@ package com.gnc.todo.service;
 import com.gnc.todo.model.MemoryDataStore;
 import com.gnc.todo.model.TodoList;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +14,14 @@ public class ListService {
 
     private MemoryDataStore dataStore;
 
-    public void addList(String name) {
-        TodoList todoList = new TodoList();
-        todoList.setName(name);
+    public void addList(TodoList todoList) {
         dataStore.save(todoList);
     }
 
     public void renameList(Long id, String name) {
         Optional<TodoList> listOptional = dataStore.findTodoList(id);
         if(!listOptional.isPresent()) {
-            throw new NullPointerException("List woth following id not found");
+            throw new NullPointerException("List with "+id+" id not found");
         }
 
         TodoList list = listOptional.get();
@@ -33,10 +32,24 @@ public class ListService {
     public void deleteList(Long id) {
         Optional<TodoList> listOptional = dataStore.findTodoList(id);
         if(!listOptional.isPresent()) {
-            throw new NullPointerException("List woth following id not found");
+            throw new NullPointerException("List with "+id+" id not found");
         }
 
         TodoList list = listOptional.get();
         dataStore.delete(list);
+    }
+
+    public List<TodoList> showLists() {
+        return dataStore.getAllTodoLists();
+    }
+
+    public TodoList getList(long id) {
+        Optional<TodoList> listOptional = dataStore.findTodoList(id);
+        if(!listOptional.isPresent()) {
+            throw new NullPointerException("List with "+id+" id not found");
+        }
+
+        TodoList list = listOptional.get();
+        return list;
     }
 }

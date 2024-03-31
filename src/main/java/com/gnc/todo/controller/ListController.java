@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequestMapping("/list")
@@ -13,16 +15,29 @@ public class ListController {
 
     public ListService listService;
 
-    @PostMapping("/{name}")
-    public void addList(@PathVariable String name) {
-        log.info("Adding list: "+ name);
-        listService.addList(name);
+    @GetMapping()
+    public List<TodoList> showAllLists() {
+        log.info("Showing all the lists");
+        return listService.showLists();
     }
 
-    @PutMapping("/{id}/{new-name}")
-    public void renameList(@PathVariable("id") Long id, @PathVariable("new-name") String updatedName) {
-        log.info("Changing the list name to "+updatedName);
-        listService.renameList(id,updatedName);
+    @GetMapping("/{id}")
+    public TodoList getTodoList(@PathVariable long id) {
+        log.info("Getting todo list based on id");
+        return listService.getList(id);
+    }
+
+
+    @PostMapping()
+    public void addList(@RequestBody TodoList todoList) {
+        log.info("Adding list: "+ todoList.getName());
+        listService.addList(todoList);
+    }
+
+    @PutMapping("/{id}")
+    public void renameList(@PathVariable("id") Long id,@RequestBody TodoList todoList) {
+        log.info("Changing the list name to "+todoList.getName());
+        listService.renameList(id,todoList.getName());
     }
 
     @DeleteMapping("/{id}")
