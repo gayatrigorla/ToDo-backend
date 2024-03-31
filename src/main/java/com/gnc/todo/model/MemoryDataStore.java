@@ -1,5 +1,7 @@
 package com.gnc.todo.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -65,6 +67,10 @@ public class MemoryDataStore {
         }
 
         return Optional.empty();
+    }
+
+    public List<TodoList> getAllTodoLists() {
+        return new ArrayList<>(listMap.values());
     }
 
 }
