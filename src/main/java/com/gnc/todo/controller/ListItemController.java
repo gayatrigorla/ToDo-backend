@@ -33,9 +33,16 @@ public class ListItemController {
     }
 
     @PutMapping("/{id}")
-        public void changeStatus(@PathVariable("id") Long id, @RequestBody ListItem listItem) {
-        log.info("Changing status of the item");
-        listItemService.changeStatus(id, listItem);
+    public void changeStatus(@PathVariable("id") Long id, @RequestBody ListItem listItem) {
+    log.info("Changing status of the item");
+    listItemService.changeStatus(id, listItem);
     }
+
+    @PutMapping("/{id}/{item-id}")
+    public void changeRank(@PathVariable("id") Long id, @PathVariable("item-id") Long itemId, @RequestBody ListItem listItem) {
+        log.info("Changing the rank of the list item with id: "+itemId);
+        listItemService.changeRank(id, itemId, listItem.getRank());
+    }
+
 
 }
