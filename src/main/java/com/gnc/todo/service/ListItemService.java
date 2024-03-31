@@ -7,11 +7,13 @@ import com.gnc.todo.model.TodoList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ListItemService {
 
+    @Autowired
     private MemoryDataStore dataStore;
 
     public void addListItem(Long id, ListItem listItem) {

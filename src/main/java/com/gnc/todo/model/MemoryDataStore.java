@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.gnc.todo.util.TodoUtil;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +33,10 @@ public class MemoryDataStore {
     }
 
     public ListItem save(ListItem listItem) {
-        if(listItem.getId() != null) {
-            throw new IllegalStateException("id should be populated dynamically");
+        if(listItem.getId() == null) {
+            listItem.setId(newListItemId++);
         }
-        listItem.setId(newListItemId);
-        listItemMap.put(newListItemId, listItem);
-        newListItemId++;
+        listItemMap.put(listItem.getId(), listItem);
         return listItem;
     }
 
@@ -68,7 +67,8 @@ public class MemoryDataStore {
             for(Long idd: ids) {
                 list.getItems().add(findListItem(idd).get());
             }
-            return Optional.of(listMap.get(id));
+            TodoUtil.sortListItemByRank(list.getItems());
+            return Optional.of(list);
         }
 
         return Optional.empty();

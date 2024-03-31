@@ -3,6 +3,7 @@ package com.gnc.todo.controller;
 import com.gnc.todo.model.ListItem;
 import com.gnc.todo.service.ListItemService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @RequestMapping("/list-item")
 public class ListItemController {
 
+    @Autowired
     private ListItemService listItemService;
 
     @GetMapping("/{id}")

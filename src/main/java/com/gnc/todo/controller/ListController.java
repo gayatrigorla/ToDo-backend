@@ -13,6 +13,8 @@ import java.util.List;
 @RequestMapping("/list")
 public class ListController {
 
+
+    @Autowired
     public ListService listService;
 
     @GetMapping()

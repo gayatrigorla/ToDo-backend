@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ListService {
 
+    @Autowired
     private MemoryDataStore dataStore;
 
     public void addList(TodoList todoList) {
