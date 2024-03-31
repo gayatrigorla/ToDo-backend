@@ -75,4 +75,44 @@ public class ListItemService {
         TodoList list = listOptional.get();
         return list.getItems();
     }
+
+    public void changeRank(Long listId, Long itemId, int newRank) {
+        Optional<TodoList> listOptional = dataStore.findTodoList(listId);
+        if(!listOptional.isPresent()) {
+            throw new NullPointerException("List woth following id not found");
+        }
+
+        TodoList list = listOptional.get();
+        int oldRank = list.getItems().stream().filter(i -> itemId.equals(i.getId())).map(ListItem::getRank).findAny().orElseThrow();
+        if(newRank == oldRank) {
+            return;
+        }
+
+        if(newRank < oldRank) {
+            upgradeRank(list.getItems(), oldRank, newRank);
+        } else {
+            downgradeRank(list.getItems(), oldRank, newRank);
+        }
+
+    }
+
+    private void downgradeRank(List<ListItem> items, int oldRank, int newRank) {
+        for(int i=oldRank; i<newRank; i++) {
+            items.get(i).setRank(i);
+            dataStore.save(items.get(i));
+        }
+
+        items.get(oldRank-1).setRank(newRank);
+        dataStore.save(items.get(oldRank-1));
+    }
+
+    private void upgradeRank(List<ListItem> items, int oldRank, int newRank) {
+        for(int i=newRank-1; i<oldRank-1; i++) {
+            items.get(i).setRank(i+2);
+            dataStore.save(items.get(i));
+        }
+
+        items.get(oldRank-1).setRank(newRank);
+        dataStore.save(items.get(oldRank-1));
+    }
 }

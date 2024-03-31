@@ -1,9 +1,11 @@
 package com.gnc.todo.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ public class MemoryDataStore {
         if(todoList.getId() == null) {
             todoList.setId(newListId++);
         }
+        todoList.getItems().forEach(i -> save(i));
         listMap.put(todoList.getId(), todoList);
         return todoList;
     }
@@ -57,6 +60,14 @@ public class MemoryDataStore {
 
     public Optional<TodoList> findTodoList(Long id) {
         if(listMap.containsKey(id)) {
+            TodoList list = listMap.get(id);
+            Set<Long> ids = new HashSet<>();
+            list.getItems().forEach(i -> ids.add(i.getId()));
+
+            list.getItems().clear();
+            for(Long idd: ids) {
+                list.getItems().add(findListItem(idd).get());
+            }
             return Optional.of(listMap.get(id));
         }
 
