@@ -2,6 +2,9 @@ package com.gnc.todo.service;
 
 import com.gnc.todo.model.MemoryDataStore;
 import com.gnc.todo.model.TodoList;
+
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,20 +13,30 @@ public class ListService {
 
     private MemoryDataStore dataStore;
 
-    private TodoList todoList = new TodoList();
     public void addList(String name) {
+        TodoList todoList = new TodoList();
         todoList.setName(name);
         dataStore.save(todoList);
     }
 
     public void renameList(Long id, String name) {
-        todoList.setName(name);
-        todoList.setId(id);
-        dataStore.save(todoList);
+        Optional<TodoList> listOptional = dataStore.findTodoList(id);
+        if(!listOptional.isPresent()) {
+            throw new NullPointerException("List woth following id not found");
+        }
+
+        TodoList list = listOptional.get();
+        list.setName(name);
+        dataStore.save(list);
     }
 
     public void deleteList(Long id) {
-        todoList.setId(id);
-        dataStore.delete(todoList);
+        Optional<TodoList> listOptional = dataStore.findTodoList(id);
+        if(!listOptional.isPresent()) {
+            throw new NullPointerException("List woth following id not found");
+        }
+
+        TodoList list = listOptional.get();
+        dataStore.delete(list);
     }
 }

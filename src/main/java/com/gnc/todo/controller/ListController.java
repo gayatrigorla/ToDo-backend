@@ -19,13 +19,13 @@ public class ListController {
         listService.addList(name);
     }
 
-    @PutMapping("/update/{id}/{new-name}")
+    @PutMapping("/{id}/{new-name}")
     public void renameList(@PathVariable("id") Long id, @PathVariable("new-name") String updatedName) {
         log.info("Changing the list name to "+updatedName);
         listService.renameList(id,updatedName);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public void deleteList(@PathVariable Long id) {
         log.info("Deleting the list");
         listService.deleteList(id);

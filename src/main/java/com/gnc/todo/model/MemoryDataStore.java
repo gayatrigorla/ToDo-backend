@@ -20,20 +20,22 @@ public class MemoryDataStore {
     private long newListId = 1l;
     private long newListItemId = 1l;
 
-    public void save(TodoList todoList) {
+    public TodoList save(TodoList todoList) {
         if(todoList.getId() == null) {
             todoList.setId(newListId++);
         }
         listMap.put(todoList.getId(), todoList);
+        return todoList;
     }
 
-    public void save(ListItem listItem) {
+    public ListItem save(ListItem listItem) {
         if(listItem.getId() != null) {
             throw new IllegalStateException("id should be populated dynamically");
         }
         listItem.setId(newListItemId);
         listItemMap.put(newListItemId, listItem);
         newListItemId++;
+        return listItem;
     }
 
     public void delete(TodoList todoList) {
