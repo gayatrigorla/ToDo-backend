@@ -1,12 +1,14 @@
 package com.gnc.todo.service;
 
 import com.gnc.todo.model.ListItem;
-import com.gnc.todo.model.MemoryDataStore;
 import com.gnc.todo.model.TodoList;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import com.gnc.todo.repository.ListItemRepository;
+import com.gnc.todo.repository.ToDoListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +16,13 @@ import org.springframework.stereotype.Service;
 public class ListItemService {
 
     @Autowired
-    private MemoryDataStore dataStore;
+    private ListItemRepository listItemRepository;
 
-    public void addListItem(Long id, ListItem listItem) {
-        Optional<TodoList> listOptional = dataStore.findTodoList(id);
+    @Autowired
+    private ToDoListRepository toDoListRepository;
+
+    public void addListItem(String id, ListItem listItem) {
+        Optional<TodoList> listOptional = toDoListRepository.findById(id);
         if(!listOptional.isPresent()) {
             throw new NullPointerException("List with "+id+" id not found");
         }
@@ -25,75 +30,73 @@ public class ListItemService {
         TodoList list = listOptional.get();
         ListItem item = new ListItem();
         item.setName(listItem.getName());
-        item.setRank(list.getItems().size()+1);
-        item = dataStore.save(item);
-        list.getItems().add(item);
-        dataStore.save(list);
+        item.setRank(getNextRankForTodoList(id));
+        item.setTacoId(id);
+        listItemRepository.save(item);
     }
 
-    public void deleteItem(long id, Long itemId) {
-        Optional<TodoList> listOptional = dataStore.findTodoList(id);
+    private int getNextRankForTodoList(String todoId) {
+        List<ListItem> items = listItemRepository.findByTodoId(todoId);
+        return items.size() + 1;
+    }
+
+    public void deleteItem(String id, String itemId) {
+        Optional<TodoList> listOptional = toDoListRepository.findById(id);
         if(!listOptional.isPresent()) {
             throw new NullPointerException("List with "+id+" id not found");
         }
 
         TodoList list = listOptional.get();
-        Optional<ListItem> listItemOptional = dataStore.findListItem(itemId);
+        Optional<ListItem> listItemOptional = listItemRepository.findById(itemId);
         if(!listItemOptional.isPresent()) {
             throw new NullPointerException("List item with "+id+" id not found");
         }
 
         ListItem item = listItemOptional.get();
-        dataStore.delete(item);
-        list.getItems().remove(item);
-        dataStore.save(list);
+        listItemRepository.delete(item);
     }
 
-    public void changeStatus(long id, ListItem listItem) {
-        Optional<TodoList> listOptional = dataStore.findTodoList(id);
+    public void changeStatus(String id, ListItem listItem) {
+        Optional<TodoList> listOptional = toDoListRepository.findById(id);
         if(!listOptional.isPresent()) {
             throw new NullPointerException("List with "+id+" id not found");
         }
 
         TodoList list = listOptional.get();
-        Optional<ListItem> listItemOptional = dataStore.findListItem(listItem.getId());
+        Optional<ListItem> listItemOptional = listItemRepository.findById(listItem.getId());
         if(!listItemOptional.isPresent()) {
             throw new NullPointerException("List item with "+id+" id not found");
         }
 
         ListItem item = listItemOptional.get();
-        list.getItems().remove(item);
         item.setCompleted(!item.isCompleted());
-        dataStore.save(item);
-        list.getItems().add(item);
+        listItemRepository.save(item);
     }
 
-    public List<ListItem> showAllItems(long id) {
-        Optional<TodoList> listOptional = dataStore.findTodoList(id);
-        if(!listOptional.isPresent()) {
+    public List<ListItem> showAllItems(String id) {
+        List<ListItem> listItems = listItemRepository.findByTodoId(id);
+        if(Objects.isNull(listItems)) {
             throw new NullPointerException("List with "+id+" id not found");
         }
 
-        TodoList list = listOptional.get();
-        return list.getItems();
+        return listItems;
     }
 
-    public void changeRank(Long listId, Long itemId, int newRank) {
-        Optional<TodoList> listOptional = dataStore.findTodoList(listId);
-        if(!listOptional.isPresent()) {
-            throw new NullPointerException("List woth following id not found");
+    public void changeRank(String listId, String itemId, int newRank) {
+        List<ListItem> listItems = listItemRepository.findByTodoId(listId);
+        if(Objects.isNull(listItems)) {
+            throw new NullPointerException("List with following id not found");
         }
 
-        TodoList list = listOptional.get();
-        int oldRank = list.getItems().stream().filter(i -> itemId.equals(i.getId())).map(ListItem::getRank).findAny().orElseThrow();
+        int oldRank = listItems.stream().filter(i -> itemId.equals(i.getId())).map(ListItem::getRank).findAny().orElseThrow();
         if(newRank == oldRank) {
             return;
         }
 
         if(newRank < oldRank) {
-            upgradeRank(list.getItems(), oldRank, newRank);
+            upgradeRank(listItems, oldRank, newRank);
         } else {
-            downgradeRank(list.getItems(), oldRank, newRank);
+            downgradeRank(listItems, oldRank, newRank);
         }
 
     }
@@ -101,20 +104,20 @@ public class ListItemService {
     private void downgradeRank(List<ListItem> items, int oldRank, int newRank) {
         for(int i=oldRank; i<newRank; i++) {
             items.get(i).setRank(i);
-            dataStore.save(items.get(i));
+            listItemRepository.save(items.get(i));
         }
 
         items.get(oldRank-1).setRank(newRank);
-        dataStore.save(items.get(oldRank-1));
+        listItemRepository.save(items.get(oldRank-1));
     }
 
     private void upgradeRank(List<ListItem> items, int oldRank, int newRank) {
         for(int i=newRank-1; i<oldRank-1; i++) {
             items.get(i).setRank(i+2);
-            dataStore.save(items.get(i));
+            listItemRepository.save(items.get(i));
         }
 
         items.get(oldRank-1).setRank(newRank);
-        dataStore.save(items.get(oldRank-1));
+        listItemRepository.save(items.get(oldRank-1));
     }
 }

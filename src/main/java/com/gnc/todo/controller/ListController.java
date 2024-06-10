@@ -24,7 +24,7 @@ public class ListController {
     }
 
     @GetMapping("/{id}")
-    public TodoList getTodoList(@PathVariable long id) {
+    public TodoList getTodoList(@PathVariable String id) {
         log.info("Getting todo list based on id");
         return listService.getList(id);
     }
@@ -37,13 +37,13 @@ public class ListController {
     }
 
     @PutMapping("/{id}")
-    public void renameList(@PathVariable("id") Long id,@RequestBody TodoList todoList) {
+    public void renameList(@PathVariable("id") String id,@RequestBody TodoList todoList) {
         log.info("Changing the list name to "+todoList.getName());
         listService.renameList(id,todoList.getName());
     }
 
     @DeleteMapping("/{id}")
-    public void deleteList(@PathVariable Long id) {
+    public void deleteList(@PathVariable String id) {
         log.info("Deleting the list");
         listService.deleteList(id);
     }
