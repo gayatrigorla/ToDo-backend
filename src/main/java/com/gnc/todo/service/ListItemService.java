@@ -4,13 +4,14 @@ import com.gnc.todo.model.ListItem;
 import com.gnc.todo.model.TodoList;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import com.gnc.todo.repository.ListItemRepository;
 import com.gnc.todo.repository.ToDoListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class ListItemService {
@@ -27,7 +28,7 @@ public class ListItemService {
             throw new NullPointerException("List with "+id+" id not found");
         }
 
-        TodoList list = listOptional.get();
+        // TodoList list = listOptional.get();
         ListItem item = new ListItem();
         item.setName(listItem.getName());
         item.setRank(getNextRankForTodoList(id));
@@ -40,16 +41,10 @@ public class ListItemService {
         return items.size() + 1;
     }
 
-    public void deleteItem(String id, String itemId) {
-        Optional<TodoList> listOptional = toDoListRepository.findById(id);
-        if(!listOptional.isPresent()) {
-            throw new NullPointerException("List with "+id+" id not found");
-        }
-
-        TodoList list = listOptional.get();
+    public void deleteItem(String itemId) {
         Optional<ListItem> listItemOptional = listItemRepository.findById(itemId);
         if(!listItemOptional.isPresent()) {
-            throw new NullPointerException("List item with "+id+" id not found");
+            throw new NullPointerException("List item with "+itemId+" id not found");
         }
 
         ListItem item = listItemOptional.get();
@@ -57,25 +52,19 @@ public class ListItemService {
     }
 
     public void changeStatus(String id, ListItem listItem) {
-        Optional<TodoList> listOptional = toDoListRepository.findById(id);
-        if(!listOptional.isPresent()) {
-            throw new NullPointerException("List with "+id+" id not found");
-        }
-
-        TodoList list = listOptional.get();
         Optional<ListItem> listItemOptional = listItemRepository.findById(listItem.getId());
         if(!listItemOptional.isPresent()) {
             throw new NullPointerException("List item with "+id+" id not found");
         }
 
         ListItem item = listItemOptional.get();
-        item.setCompleted(!item.isCompleted());
+        item.setCompleted(listItem.isCompleted());
         listItemRepository.save(item);
     }
 
     public List<ListItem> showAllItems(String id) {
         List<ListItem> listItems = listItemRepository.findByTodoId(id);
-        if(Objects.isNull(listItems)) {
+        if(CollectionUtils.isEmpty(listItems)) {
             throw new NullPointerException("List with "+id+" id not found");
         }
 
@@ -84,7 +73,7 @@ public class ListItemService {
 
     public void changeRank(String listId, String itemId, int newRank) {
         List<ListItem> listItems = listItemRepository.findByTodoId(listId);
-        if(Objects.isNull(listItems)) {
+        if(CollectionUtils.isEmpty(listItems)) {
             throw new NullPointerException("List with following id not found");
         }
 
@@ -94,30 +83,38 @@ public class ListItemService {
         }
 
         if(newRank < oldRank) {
-            upgradeRank(listItems, oldRank, newRank);
-        } else {
             downgradeRank(listItems, oldRank, newRank);
+        } else {
+            upgradeRank(listItems, oldRank, newRank);
         }
+
+        listItemRepository.saveAll(listItems);
 
     }
 
     private void downgradeRank(List<ListItem> items, int oldRank, int newRank) {
-        for(int i=oldRank; i<newRank; i++) {
-            items.get(i).setRank(i);
-            listItemRepository.save(items.get(i));
-        }
+        ListItem item = null;
 
-        items.get(oldRank-1).setRank(newRank);
-        listItemRepository.save(items.get(oldRank-1));
+        for(ListItem i: items) {
+            if (i.getRank() == oldRank) {
+                item = i;
+            } else if (i.getRank() >= newRank && i.getRank() < oldRank) {
+                i.setRank(i.getRank() + 1);
+            }
+        }
+        item.setRank(newRank);
     }
 
     private void upgradeRank(List<ListItem> items, int oldRank, int newRank) {
-        for(int i=newRank-1; i<oldRank-1; i++) {
-            items.get(i).setRank(i+2);
-            listItemRepository.save(items.get(i));
-        }
+        ListItem item=null;
 
-        items.get(oldRank-1).setRank(newRank);
-        listItemRepository.save(items.get(oldRank-1));
+        for(ListItem i : items) {
+            if(i.getRank() == oldRank) {
+                item=i;
+            } else if(oldRank < i.getRank() && i.getRank() <= newRank) {
+                i.setRank(i.getRank()-1);
+            }
+        }
+        item.setRank(newRank);
     }
 }

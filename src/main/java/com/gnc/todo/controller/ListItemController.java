@@ -28,14 +28,14 @@ public class ListItemController {
         listItemService.addListItem(id, listItem);
     }
 
-    @DeleteMapping("/{id}/{item-id}")
-    public void deleteListItem(@PathVariable("id") String id, @PathVariable("item-id") String itemId) {
+    @DeleteMapping("/{item-id}")
+    public void deleteListItem(@PathVariable("item-id") String itemId) {
         log.info("Deleting an item from the list");
-        listItemService.deleteItem(id,itemId);
+        listItemService.deleteItem(itemId);
     }
 
-    @PutMapping("/{id}")
-    public void changeStatus(@PathVariable("id") String id, @RequestBody ListItem listItem) {
+    @PatchMapping("/{item-id}")
+    public void changeStatus(@PathVariable("item-id") String id, @RequestBody ListItem listItem) {
     log.info("Changing status of the item");
     listItemService.changeStatus(id, listItem);
     }

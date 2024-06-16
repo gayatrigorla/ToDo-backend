@@ -5,15 +5,20 @@ import com.gnc.todo.model.TodoList;
 import java.util.List;
 import java.util.Optional;
 
+import com.gnc.todo.repository.ListItemRepository;
 import com.gnc.todo.repository.ToDoListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ListService {
 
     @Autowired
     private ToDoListRepository toDoListRepository;
+
+    @Autowired
+    private ListItemRepository listItemRepository;
 
     public void addList(TodoList todoList) {
         toDoListRepository.save(todoList);
@@ -30,6 +35,7 @@ public class ListService {
         toDoListRepository.save(list);
     }
 
+    @Transactional
     public void deleteList(String id) {
         Optional<TodoList> listOptional = toDoListRepository.findById(id);
         if(listOptional.isEmpty()) {
@@ -38,6 +44,7 @@ public class ListService {
 
         TodoList list = listOptional.get();
         toDoListRepository.delete(list);
+        listItemRepository.deleteByTacoId(id);
     }
 
     public List<TodoList> showLists() {
